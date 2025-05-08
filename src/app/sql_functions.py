@@ -148,7 +148,7 @@ def llm_create_sql(sql_dialect, table_info, question, lang_model):
     sql_query = create_chain.predict()
     # sql_query.trim('''')
     print("\nSQL statement created: " + sql_query)
-    sql_query = "SELECT COUNT(*) FROM head WHERE age > 56;"
+    # sql_query = "SELECT COUNT(*) FROM head WHERE age > 56;"
     return sql_query
 
 def llm_check_sql(sql_query, sql_dialect, lang_model):

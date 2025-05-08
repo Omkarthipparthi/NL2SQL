@@ -1,70 +1,3 @@
-# # frontend.py
-# import streamlit as st
-# import requests # To send HTTP requests to the backend
-# import os
-
-# # --- Configuration ---
-# # Get the backend URL from environment variable or use default
-# # This allows flexibility if your backend runs elsewhere
-# BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000/query")
-
-# st.set_page_config(page_title="SQL Query Assistant", layout="wide")
-
-# st.title("📊 SQL Query Assistant")
-# st.caption("Ask a question about your data in natural language.")
-
-# # --- User Input ---
-# user_question = st.text_area("Enter your question here:", height=100)
-
-# # --- Submit Button and Processing ---
-# if st.button("Get Answer"):
-#     if user_question:
-#         st.info("🔄 Processing your question...") # Show progress indicator
-#         try:
-#             # Send the question to the FastAPI backend
-#             response = requests.post(BACKEND_URL, json={"question": user_question})
-#             response.raise_for_status() # Raise an exception for bad status codes (4xx or 5xx)
-
-#             # Get the result from the backend response
-#             result_data = response.json()
-#             answer = result_data.get("result", "Error: No result field in response.")
-
-#             # Display the result
-#             st.success("✅ Processing Complete!")
-#             st.markdown("---")
-#             st.markdown(answer) # Use markdown to render formatting from the backend
-
-#         except requests.exceptions.RequestException as e:
-#             st.error(f"⚠️ Could not connect to the backend: {e}")
-#             st.error(f"Please ensure the backend server is running at {BACKEND_URL.replace('/query','')} and accessible.")
-#         except Exception as e:
-#             st.error(f"An unexpected error occurred: {e}")
-#     else:
-#         st.warning("Please enter a question before submitting.")
-
-# # --- Optional: Add Instructions or Info ---
-# st.sidebar.header("How it Works")
-# st.sidebar.markdown("""
-# 1.  Enter your question about the data in the text box.
-# 2.  Click "Get Answer".
-# 3.  The question is sent to a backend service.
-# 4.  The backend uses AI and database information (,) to:
-#     * Find relevant tables.
-#     * Generate a SQL query.
-#     * Run the query.
-#     * Interpret the results.
-# 5.  The final answer is displayed.
-# """)
-# st.sidebar.header("Project Files")
-# st.sidebar.markdown(f"""
-# - Backend Logic: `app/main.py`, `app/sql_functions.py`
-# - Backend Server: `backend.py`
-# - Frontend UI: `frontend.py`
-# """) # Add citations here
-
-
-
-
 import streamlit as st
 import requests
 import os
@@ -73,61 +6,73 @@ import re
 # Configuration
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000/query")
 
-st.set_page_config(page_title="SQL Query Assistant", layout="wide")
-st.title("📊 SQL Query Assistant")
+st.set_page_config(page_title="NL2SQL Query Assistant", layout="wide")
+st.title("📊 NL2SQL Query Assistant")
 st.caption("Ask a question about your data in natural language.")
 
 # Input
 user_question = st.text_area("Enter your question here:", height=100)
 
-# Helper to extract and format sections
+# Helper to extract and clean output
 def format_output(raw_output):
-    sections = {
-        "Input Question": "",
-        "SQL Query": "",
-        "SQL Output": "",
-        "Answer": ""
+    # Clean multi-line formatted response using stricter pattern
+    pattern = (
+        r"Input Question:\s*(.*?)\s*SQL Query:\s*(.*?)\s*SQL Output:\s*(.*?)\s*Answer:\s*(.*)"
+    )
+    match = re.search(pattern, raw_output, re.DOTALL)
+    if not match:
+        return {
+            "Input Question": "",
+            "SQL Query": "",
+            "SQL Output": "",
+            "Answer": raw_output.strip(),  # fallback
+        }
+    return {
+        "Input Question": match.group(1).strip(),
+        "SQL Query": match.group(2).strip(),
+        "SQL Output": match.group(3).strip(),
+        "Answer": match.group(4).strip(),
     }
-    for key in sections.keys():
-        pattern = rf"{key}:\s*(.*?)\s*(?=\n[A-Z]|$)"
-        match = re.search(pattern, raw_output, re.DOTALL)
-        if match:
-            sections[key] = match.group(1).strip()
-    return sections
 
 # Button
 if st.button("Get Answer"):
     if user_question:
-        st.info("🔄 Processing your question...")
-        try:
-            response = requests.post(BACKEND_URL, json={"question": user_question})
-            response.raise_for_status()
-            result_data = response.json()
-            answer = result_data.get("result", "❌ Error: No result field in response.")
+        with st.status("🔄 Processing your question...", expanded=True) as status:
+            try:
+                response = requests.post(BACKEND_URL, json={"question": user_question})
+                response.raise_for_status()
+                result_data = response.json()
+                answer = result_data.get("result", "❌ Error: No result field in response.")
 
-            st.success("✅ Processing Complete!")
-            st.markdown("---")
+                # Format and display clean blocks
+                blocks = format_output(answer)
 
-            # Format and display clean blocks
-            blocks = format_output(answer)
+                status.update(label="✅ Processing Complete!", state="complete", expanded=True)
+                st.markdown("---")
 
-            with st.container():
-                st.subheader("📝 Input Question")
-                st.code(blocks["Input Question"], language="markdown")
+                with st.container():
+                    if blocks["Input Question"]:
+                        st.subheader("📝 Input Question")
+                        st.markdown(f"**{blocks['Input Question']}**")
 
-                st.subheader("💡 SQL Query")
-                st.code(blocks["SQL Query"], language="sql")
+                    if blocks["SQL Query"]:
+                        st.subheader("💡 SQL Query")
+                        st.code(blocks["SQL Query"], language="sql")
 
-                st.subheader("📄 SQL Output")
-                st.code(blocks["SQL Output"], language="text")
+                    if blocks["SQL Output"]:
+                        st.subheader("📄 SQL Output")
+                        st.code(blocks["SQL Output"], language="text")
 
-                st.subheader("✅ Final Answer")
-                st.success(blocks["Answer"])
+                    if blocks["Answer"]:
+                        st.subheader("✅ Final Answer")
+                        st.success(blocks["Answer"])
 
-        except requests.exceptions.RequestException as e:
-            st.error(f"⚠️ Could not connect to the backend: {e}")
-        except Exception as e:
-            st.error(f"An unexpected error occurred: {e}")
+            except requests.exceptions.RequestException as e:
+                status.update(label="❌ Could not connect to the backend.", state="error")
+                st.error(f"{e}")
+            except Exception as e:
+                status.update(label="❌ Unexpected error occurred.", state="error")
+                st.error(f"{e}")
     else:
         st.warning("Please enter a question before submitting.")
 
