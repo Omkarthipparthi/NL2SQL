@@ -1,24 +1,28 @@
 
-# 🧠 Natural Language-to-SQL Copilot
+# Natural Language-to-SQL Copilot
 
 Natural Language-to-SQL Copilot helps users convert natural language questions into SQL queries, execute them on real databases, and interpret the results. It removes SQL as a barrier to insights using AI-driven query generation and analysis.
 
-Add demo in future
-
 ---
 
-## 🚀 Features
+## Features
 
 - Natural language input → SQL query generation
 - Automatic schema recognition via vector search
 - Query validation, execution, and result interpretation
 - FastAPI backend + Streamlit frontend
-- Powered by OpenAI or HuggingFace models (like `flan-t5-xxl`)
+- Powered by OpenAI or HuggingFace models (`gpt-3.5`)
 - Built on top of the Spider benchmark dataset
 
 ---
 
-## 🗂️ Project Structure
+## Flow Chart/ UML Diagram
+
+![Project Flowchart](./Text2SQL.jpg)
+
+---
+
+## Project Structure
 
 ```
 NL2SQL/
@@ -41,9 +45,9 @@ NL2SQL/
 
 ---
 
-## 📦 Installation & Setup
+## Installation & Setup
 
-### 1. 📁 Get the Dataset
+### 1. Get the Dataset
 
 This project is designed for the [Spider](https://yale-lily.github.io/spider) benchmark dataset.
 
@@ -62,7 +66,7 @@ mv spider src/data/raw/
 
 ---
 
-### 2. 🛠️ Install Dependencies
+### 2. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -70,7 +74,7 @@ pip install -r requirements.txt
 
 ---
 
-### 3. 🧠 Vector Database Setup
+### 3. Vector Database Setup
 
 Build ChromaDB embeddings from your Spider dataset:
 
@@ -82,7 +86,7 @@ This will index all database schemas and sample data. It may take 10–15 minute
 
 ---
 
-## 🔐 HuggingFace / OpenAI API Key
+## HuggingFace / OpenAI API Key
 
 Create a `.env` file in the root directory:
 
@@ -99,16 +103,16 @@ OPENAI_API_KEY=your_openai_key_if_used
 
 ---
 
-## 🧪 Running the Application
+## Running the Application
 
-### ✳️ Run Backend (FastAPI)
+### Run Backend (FastAPI)
 
 ```bash
 cd src/app
 uvicorn backend:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### 🎨 Run Frontend (Streamlit)
+### Run Frontend (Streamlit)
 
 In a new terminal:
 
@@ -121,7 +125,7 @@ Then open: [http://localhost:8501](http://localhost:8501)
 
 ---
 
-## ✏️ Example Workflow
+## Example Workflow
 
 1. Open the frontend UI.
 2. Enter a question like:  
@@ -134,7 +138,7 @@ Then open: [http://localhost:8501](http://localhost:8501)
 
 ---
 
-## 📝 Citation & Acknowledgements
+## Citation & Acknowledgements
 
 - **LangChain**  
   Chase, H. (2022). [LangChain GitHub](https://github.com/hwchase17/langchain)
